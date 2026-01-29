@@ -24,3 +24,103 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 🚨 [핵심] LiveKit 기본 헤더 강제 삭제 (여기서 Messages 글씨와 기본 X버튼을 날립니다) */
+body .lk-chat-header,
+body [class*="lk-chat-header"] {
+  display: none !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* =========================================
+   채팅창 디자인 (짤림 방지 & 스타일링)
+   ========================================= */
+
+/* 채팅창 전체 컨테이너 */
+.lk-chat {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* 메시지 목록 영역 (여백 확보) */
+.lk-chat-messages {
+  flex-grow: 1 !important;
+  overflow-y: auto !important;
+  padding: 20px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+/* 개별 메시지 박스 */
+.lk-chat-entry {
+  max-width: 90% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 보낸 사람 이름 (닉네임) */
+.lk-chat-entry-metadata {
+  display: block !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: #94a3b8 !important; /* slate-400 */
+  margin-bottom: 4px !important;
+  padding-left: 2px !important;
+}
+
+/* 말풍선 본문 */
+.lk-chat-entry-message {
+  background-color: rgba(30, 41, 59, 0.8) !important; /* slate-800 */
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #e2e8f0 !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  border-top-left-radius: 2px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  word-break: break-all !important; /* 글자 짤림 방지 */
+}
+
+/* 내 메시지 (파란색 & 오른쪽 정렬) */
+.lk-chat-entry.lk-self {
+  align-self: flex-end !important;
+  align-items: flex-end !important;
+}
+
+.lk-chat-entry.lk-self .lk-chat-entry-message {
+  background-color: #2563eb !important; /* blue-600 */
+  color: white !important;
+  border: none !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 2px !important;
+}
+
+/* 하단 입력창 고정 */
+.lk-chat-form {
+  padding: 16px !important;
+  background-color: #0f172a !important; /* slate-950 */
+  border-top: 1px solid rgba(255,255,255,0.1) !important;
+  flex-shrink: 0 !important;
+}
+
+.lk-chat-form-input {
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  font-size: 14px !important;
+}
