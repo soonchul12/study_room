@@ -9,6 +9,7 @@ import {
   TrackToggle, 
   ChatEntry,
   useChat,
+  useParticipants,
   DisconnectButton, 
   LayoutContextProvider, 
   useTracks, 
@@ -83,7 +84,9 @@ useEffect(() => {
 
 function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
   const { chatMessages, send, isSending } = useChat();
+  const participants = useParticipants();
   const { isMicrophoneEnabled, isCameraEnabled, isScreenShareEnabled } = useLocalParticipant();
 
   const videoTracks = useTracks([Track.Source.Camera], { onlySubscribed: false });
@@ -100,12 +103,45 @@ function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
     <LayoutContextProvider>
       {/* 상단바 */}
       <div className="h-14 border-b border-white/10 flex justify-between items-center px-6 bg-[#0f172a] shrink-0 z-20">
-        <div className="flex items-center gap-3">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          <h2 className="font-bold text-sm tracking-wide text-slate-100">{roomTitle}</h2>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <h2 className="font-bold text-sm tracking-wide text-slate-100">{roomTitle}</h2>
+          </div>
+          {/* 참가자 목록 토글 */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsParticipantsOpen((v) => !v)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 border border-white/5 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>{participants.length}명 참가 중</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`transition-transform ${isParticipantsOpen ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            {isParticipantsOpen && (
+              <>
+                <div className="absolute top-full left-0 mt-1 w-56 bg-[#1e293b] border border-white/10 rounded-xl shadow-xl py-2 z-50 max-h-64 overflow-y-auto">
+                  <div className="px-3 py-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-white/5 mb-2">
+                    참가자
+                  </div>
+                  {participants.map((p) => (
+                    <div key={p.identity} className="flex items-center gap-2 px-3 py-2 hover:bg-white/5">
+                      <span className={`h-2 w-2 rounded-full shrink-0 ${p.isLocal ? 'bg-emerald-500' : 'bg-slate-500'}`} />
+                      <span className="text-sm text-slate-200 truncate">
+                        {p.name || p.identity || '이름 없음'}
+                        {p.isLocal && <span className="text-slate-500 ml-1">(나)</span>}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="fixed inset-0 z-40" onClick={() => setIsParticipantsOpen(false)} aria-hidden />
+              </>
+            )}
+          </div>
         </div>
         <button 
           onClick={() => {
