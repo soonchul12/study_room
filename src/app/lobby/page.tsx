@@ -14,6 +14,7 @@ export default function LobbyPage() {
   const [password, setPassword] = useState("");
 
   const [user, setUser] = useState<any>(null);
+  const [displayName, setDisplayName] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -21,7 +22,14 @@ export default function LobbyPage() {
       const { data } = await supabase.auth.getUser();
       if (!data.user) router.push('/');
       setUser(data.user);
-      fetchAndCleanRooms(); // 로비 들어오면 청소 시작!
+      // 채팅에서 보일 이름: 저장된 값 > Supabase 이름/이메일
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('study_room_display_name') : null;
+      if (saved) setDisplayName(saved);
+      else if (data.user) {
+        const def = data.user.user_metadata.full_name || data.user.email?.split('@')[0] || '';
+        setDisplayName(def);
+      }
+      fetchAndCleanRooms();
     };
     init();
 
@@ -90,13 +98,27 @@ export default function LobbyPage() {
             </h1>
             <p className="text-slate-500 mt-2 font-medium">함께 공부할 동료를 찾아보세요.</p>
           </div>
-          <div className="flex gap-4">
-             <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2">
-               <span>+</span> 방 만들기
-             </button>
-             <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="text-slate-400 hover:text-white px-4 py-2">
-               로그아웃
-             </button>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-slate-400 text-sm font-medium whitespace-nowrap">채팅에서 보일 이름</label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setDisplayName(v);
+                  if (typeof window !== 'undefined') localStorage.setItem('study_room_display_name', v);
+                }}
+                placeholder="이름 또는 아이디"
+                className="bg-slate-800/50 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 w-40 focus:border-blue-500 outline-none"
+              />
+            </div>
+            <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2">
+              <span>+</span> 방 만들기
+            </button>
+            <button onClick={() => supabase.auth.signOut().then(() => router.push('/'))} className="text-slate-400 hover:text-white px-4 py-2">
+              로그아웃
+            </button>
           </div>
         </div>
 

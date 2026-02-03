@@ -1,0 +1,27 @@
+/* LiveKit 채팅 스타일 덮어쓰기 - room 페이지에서 @livekit/components-styles 다음에 로드되어 최종 적용 */
+
+/* 메시지 본문: 가로로만 표시 (inline-block + min-content로 한 글자씩 줄바꿈 방지) */
+body .lk-chat .lk-chat-entry .lk-message-body {
+  display: inline-block !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  word-wrap: break-word !important;
+  writing-mode: horizontal-tb !important;
+  unicode-bidi: plaintext !important;
+  max-width: 100% !important;
+  min-width: min-content !important;
+  margin-block-start: 0 !important;
+  margin-block-end: 0 !important;
+}
+
+body .lk-chat .lk-chat-entry .lk-message-body * {
+  display: inline !important;
+  white-space: normal !important;
+  margin-block-start: 0 !important;
+  margin-block-end: 0 !important;
+}
+
+/* 메시지 행이 한 글자 너비로 줄어들지 않게 (세로로 쌓이는 원인 제거) */
+body .lk-chat .lk-chat-entry {
+  min-width: min-content !important;
+}

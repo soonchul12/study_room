@@ -11,11 +11,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: '방 이름과 사용자 이름이 필요합니다.' }, { status: 400 });
   }
 
-  // 입장권 제작 (LiveKit API Key와 Secret이 필요합니다)
+  // 입장권 제작 (identity + name 설정 시 채팅에 아이디가 표시됨)
   const at = new AccessToken(
     process.env.LIVEKIT_API_KEY,
     process.env.LIVEKIT_API_SECRET,
-    { identity: username }
+    { identity: username, name: username }
   );
 
   at.addGrant({ roomJoin: true, room: room, canPublish: true, canSubscribe: true });

@@ -16,6 +16,7 @@ import {
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import '@livekit/components-styles';
+import '../chat-overrides.css';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import AIStudyTimer from '@/components/AIStudyTimer';
@@ -38,18 +39,21 @@ useEffect(() => {
     const { data } = await supabase.from('rooms').select('title').eq('id', id).single();
     if (data) setRoomTitle(data.title);
 
-    // 2. 내 정보(이름/아이디) 확실하게 가져오기 ⭐
+    // 2. 채팅에 보일 이름: 로비에서 설정한 값 > Supabase 이름/이메일 > 익명
     const { data: userData } = await supabase.auth.getUser();
     let userName = "익명";
-
     if (userData.user) {
-      // 이름이 있으면 이름, 없으면 이메일(@앞부분)을 사용해서 누군지 식별
-      userName = userData.user.user_metadata.full_name 
+      const supabaseName = userData.user.user_metadata.full_name 
         || userData.user.email?.split('@')[0] 
         || "User-" + Math.floor(Math.random() * 1000);
+      if (typeof window !== 'undefined') {
+        userName = localStorage.getItem('study_room_display_name')?.trim() || supabaseName;
+      } else {
+        userName = supabaseName;
+      }
     }
 
-    // 3. 토큰 발급 요청 (이름 포함)
+    // 3. 토큰 발급 요청 (identity + name 둘 다 설정 → 채팅에 아이디 표시)
     const resp = await fetch(`/api/get-token?room=${id}&username=${userName}`);
     const tokenData = await resp.json();
     setToken(tokenData.token);
@@ -182,7 +186,7 @@ function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
-            <div className="flex-1 overflow-hidden relative flex flex-col">
+            <div className="flex-1 min-h-0 min-w-0 flex flex-col w-full overflow-hidden">
                 <CustomChat />
             </div>
           </div>
