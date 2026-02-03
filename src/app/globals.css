@@ -1,17 +1,17 @@
-/* 🚨 1. Tailwind v4 엔진 시동 (v4는 @import 사용) */
+/* 🚨 1. Tailwind v4 엔진 (v4는 @import 한 줄만 사용) */
 @import "tailwindcss";
 
-/* 🚨 2. 배경색이 안 나오는 문제 해결 (다크모드 강제 적용) */
+/* 🚨 2. 배경색 복구 (다크모드 강제 적용) */
 body {
-  background-color: #020617; /* 아주 어두운 남색 배경 */
-  color: #e2e8f0; /* 밝은 회색 글씨 */
+  background-color: #020617 !important; /* 아주 어두운 남색 배경 */
+  color: #e2e8f0 !important; /* 밝은 회색 글씨 */
 }
 
 /* =========================================
-   3. 여기서부터 채팅창 디자인
+   3. 채팅창 디자인 (카톡/디스코드 스타일)
    ========================================= */
 
-/* LiveKit 기본 헤더 숨기기 */
+/* LiveKit 기본 헤더 숨기기 (X박스 제거) */
 body .lk-chat-header,
 body [class*="lk-chat-header"] {
   display: none !important;
@@ -32,29 +32,30 @@ body [class*="lk-chat-header"] {
   padding: 20px 16px !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 16px !important;
+  gap: 16px !important; /* 메시지 사이 간격 */
   overflow-y: auto !important;
 }
 
-/* 개별 메시지 박스 */
+/* 4. 개별 메시지 박스 (기본: 상대방 = 왼쪽) */
 .lk-chat-entry {
   display: flex !important;
   flex-direction: column !important;
   max-width: 85% !important;
   position: relative !important;
-  align-items: flex-start !important;
-  align-self: flex-start !important;
+  align-items: flex-start !important; /* 내용물 왼쪽 정렬 */
+  align-self: flex-start !important;  /* 박스 자체 왼쪽 정렬 */
 }
 
-/* 내 채팅 (오른쪽) */
+/* ⭐ 5. 내 채팅 (나 = 오른쪽) */
+/* LiveKit이 내 메시지에는 자동으로 'lk-self' 클래스를 붙여줍니다 */
 .lk-chat-entry.lk-self {
-  align-items: flex-end !important;
-  align-self: flex-end !important;
+  align-items: flex-end !important; /* 내용물 오른쪽 정렬 */
+  align-self: flex-end !important;  /* 박스 자체 오른쪽 정렬 */
 }
 
-/* 이름(ID) 표시 */
+/* 6. 이름(ID) 표시 */
 .lk-chat-entry-metadata {
-  display: block !important;
+  display: block !important; /* 숨겨진 이름 강제 표시 */
   font-size: 11px !important;
   font-weight: 700 !important;
   color: #94a3b8 !important;
@@ -62,38 +63,39 @@ body [class*="lk-chat-header"] {
   padding: 0 4px !important;
 }
 
-/* 내 이름 오른쪽 */
+/* 내 이름은 오른쪽 정렬 & 파란색 */
 .lk-chat-entry.lk-self .lk-chat-entry-metadata {
   text-align: right !important;
   color: #60a5fa !important;
 }
 
-/* 말풍선 (상대방) */
+/* 7. 말풍선 디자인 (상대방 - 회색) */
 .lk-chat-entry-message {
   padding: 10px 14px !important;
   border-radius: 14px !important;
   font-size: 14px !important;
   line-height: 1.5 !important;
   word-break: break-all !important;
-  background-color: #334155 !important;
+  background-color: #334155 !important; /* slate-700 */
   color: #f1f5f9 !important;
-  border-top-left-radius: 2px !important;
+  border-top-left-radius: 2px !important; /* 말꼬리 */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
 }
 
-/* 말풍선 (나) */
+/* 8. 내 말풍선 디자인 (나 - 파란색) */
 .lk-chat-entry.lk-self .lk-chat-entry-message {
-  background-color: #2563eb !important;
+  background-color: #2563eb !important; /* blue-600 */
   color: white !important;
-  border-top-left-radius: 14px !important;
-  border-top-right-radius: 2px !important;
+  border-top-left-radius: 14px !important; /* 복구 */
+  border-top-right-radius: 2px !important; /* 말꼬리 */
 }
 
-/* 하단 입력창 */
+/* 9. 하단 입력창 고정 */
 .lk-chat-form {
   padding: 16px !important;
   background-color: #0f172a !important;
   border-top: 1px solid rgba(255,255,255,0.1) !important;
+  flex-shrink: 0 !important;
 }
 
 .lk-chat-form-input {
