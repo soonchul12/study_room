@@ -83,13 +83,10 @@ useEffect(() => {
 
 function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  
-  // 상태 확인용 훅
+  const { chatMessages, send, isSending } = useChat();
   const { isMicrophoneEnabled, isCameraEnabled, isScreenShareEnabled } = useLocalParticipant();
 
-  // ⭐ [핵심 수정] 카메라 트랙을 더 확실하게 가져오는 방법 (useTracks 사용)
   const videoTracks = useTracks([Track.Source.Camera], { onlySubscribed: false });
-  // 내 카메라 트랙 찾기
   const localVideoTrack = videoTracks.find(t => t.participant.isLocal)?.publication?.videoTrack?.mediaStreamTrack || null;
 
   // 버튼 설정
@@ -126,9 +123,12 @@ function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
       <div className="flex-1 flex overflow-hidden relative">
         <div className="flex-1 flex flex-col relative bg-black/40 transition-all">
             
-            {/* ⭐ AI 타이머 (localVideoTrack을 전달합니다) */}
+            {/* ⭐ AI 타이머: 링크 버튼(채팅에 시간 전송), 설정 버튼(목표 시간) */}
             <div className="absolute top-6 left-6 z-30 animate-in fade-in zoom-in duration-500">
-              <AIStudyTimer videoTrack={localVideoTrack} />
+              <AIStudyTimer
+                videoTrack={localVideoTrack}
+                onShareToChat={(msg) => send(msg)}
+              />
             </div>
 
             <VideoGrid />
@@ -187,7 +187,7 @@ function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
               </button>
             </div>
             <div className="flex-1 min-h-0 min-w-0 flex flex-col w-full overflow-hidden">
-                <CustomChat />
+                <CustomChat send={send} chatMessages={chatMessages} isSending={isSending} />
             </div>
           </div>
         )}
@@ -197,10 +197,19 @@ function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
   );
 }
 
-function CustomChat() {
+type ChatMessageEntry = React.ComponentProps<typeof ChatEntry>['entry'];
+
+function CustomChat({
+  send,
+  chatMessages,
+  isSending,
+}: {
+  send: (message: string) => Promise<unknown>;
+  chatMessages: ChatMessageEntry[];
+  isSending: boolean;
+}) {
   const ulRef = React.useRef<HTMLUListElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const { chatMessages, send, isSending } = useChat();
 
   React.useEffect(() => {
     ulRef.current?.scrollTo({ top: ulRef.current.scrollHeight });
