@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, use, useRef } from 'react';
 import { 
   LiveKitRoom, 
   GridLayout, 
   ParticipantTile, 
   RoomAudioRenderer, 
   TrackToggle, 
-  Chat, 
+  ChatEntry,
+  useChat,
   DisconnectButton, 
   LayoutContextProvider, 
   useTracks, 
@@ -181,14 +182,63 @@ function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
-            <div className="flex-1 overflow-hidden relative">
-                <Chat style={{ width: '100%', height: '100%' }} />
+            <div className="flex-1 overflow-hidden relative flex flex-col">
+                <CustomChat />
             </div>
           </div>
         )}
       </div>
       <RoomAudioRenderer />
     </LayoutContextProvider>
+  );
+}
+
+function CustomChat() {
+  const ulRef = React.useRef<HTMLUListElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const { chatMessages, send, isSending } = useChat();
+
+  React.useEffect(() => {
+    ulRef.current?.scrollTo({ top: ulRef.current.scrollHeight });
+  }, [chatMessages]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (inputRef.current && inputRef.current.value.trim() !== '') {
+      await send(inputRef.current.value);
+      inputRef.current.value = '';
+      inputRef.current.focus();
+    }
+  }
+
+  return (
+    <div className="lk-chat w-full h-full flex flex-col" style={{ minHeight: 0 }}>
+      <ul className="lk-list lk-chat-messages flex-1 overflow-y-auto min-h-0" ref={ulRef}>
+        {chatMessages.map((msg, idx) => (
+          <ChatEntry
+            key={msg.id ?? idx}
+            entry={msg}
+            hideName={false}
+            hideTimestamp={false}
+          />
+        ))}
+      </ul>
+      <form className="lk-chat-form flex-shrink-0" onSubmit={handleSubmit}>
+        <input
+          className="lk-form-control lk-chat-form-input"
+          disabled={isSending}
+          ref={inputRef}
+          type="text"
+          placeholder="Enter a message..."
+          onInput={(ev) => ev.stopPropagation()}
+          onKeyDown={(ev) => ev.stopPropagation()}
+          onKeyUp={(ev) => ev.stopPropagation()}
+        />
+        <button type="submit" className="lk-button lk-chat-form-button" disabled={isSending}>
+          Send
+        </button>
+      </form>
+    </div>
   );
 }
 

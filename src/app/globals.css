@@ -18,7 +18,7 @@ body [class*="lk-chat-header"] {
 }
 
 /* 채팅창 전체 틀 */
-.lk-chat {
+body .lk-chat {
   background: transparent !important;
   border: none !important;
   height: 100% !important;
@@ -27,7 +27,7 @@ body [class*="lk-chat-header"] {
 }
 
 /* 메시지 목록 영역 */
-.lk-chat-messages {
+body .lk-chat .lk-chat-messages {
   flex-grow: 1 !important;
   padding: 20px 16px !important;
   display: flex !important;
@@ -36,30 +36,43 @@ body [class*="lk-chat-header"] {
   overflow-y: auto !important;
 }
 
-/* 세로로 글자 나오는 현상 방지 (LiveKit * 마진 초기화) */
-.lk-chat-entry .lk-message-body {
+/* ===== body .lk-chat 으로 우선순위 높여 LiveKit 기본 스타일 덮어쓰기 ===== */
+
+/* 세로로 글자 나오는 현상 방지: 메시지 본문 가로 배치 + 마진 초기화 */
+body .lk-chat .lk-chat-entry .lk-message-body {
+  margin-block-start: 0 !important;
+  margin-block-end: 0 !important;
+  display: block !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  writing-mode: horizontal-tb !important;
+  unicode-bidi: plaintext !important;
+}
+
+/* 링크 등 자식 요소도 한 줄에 (세로 깨짐 방지) */
+body .lk-chat .lk-chat-entry .lk-message-body * {
+  display: inline !important;
   margin-block-start: 0 !important;
   margin-block-end: 0 !important;
 }
 
-/* 4. 개별 메시지 박스 (LiveKit 실제 클래스: lk-chat-entry, data-lk-message-origin) */
-.lk-chat-entry {
+/* 4. 개별 메시지 박스 */
+body .lk-chat .lk-chat-entry {
   display: flex !important;
   flex-direction: column !important;
   max-width: 85% !important;
-  position: relative !important;
   align-items: flex-start !important;
-  align-self: flex-start !important; /* 상대방 = 왼쪽 */
+  align-self: flex-start !important;
 }
 
-/* 5. 내 채팅 = 오른쪽 (LiveKit은 lk-self 대신 data-lk-message-origin=local 사용) */
-.lk-chat-entry[data-lk-message-origin="local"] {
+/* 5. 내 채팅 = 오른쪽 */
+body .lk-chat .lk-chat-entry[data-lk-message-origin="local"] {
   align-items: flex-end !important;
   align-self: flex-end !important;
 }
 
-/* 6. 발신자 이름(ID) 표시 (실제 클래스: lk-meta-data, lk-participant-name) */
-.lk-chat-entry .lk-meta-data {
+/* 6. 발신자 이름(ID) 항상 표시 */
+body .lk-chat .lk-chat-entry .lk-meta-data {
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
@@ -68,28 +81,26 @@ body [class*="lk-chat-header"] {
   color: #94a3b8 !important;
   margin-bottom: 4px !important;
   padding: 0 4px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
-.lk-chat-entry .lk-participant-name {
+body .lk-chat .lk-chat-entry .lk-participant-name {
   display: inline !important;
   margin-top: 0 !important;
 }
 
-/* 내 이름 오른쪽 & 파란색 */
-.lk-chat-entry[data-lk-message-origin="local"] .lk-meta-data {
+body .lk-chat .lk-chat-entry[data-lk-message-origin="local"] .lk-meta-data {
   flex-direction: row-reverse !important;
   justify-content: flex-end !important;
 }
 
-.lk-chat-entry[data-lk-message-origin="local"] .lk-participant-name {
+body .lk-chat .lk-chat-entry[data-lk-message-origin="local"] .lk-participant-name {
   color: #60a5fa !important;
 }
 
-/* 7. 말풍선 = 가로로 표시 (실제 클래스: lk-message-body), 세로 깨짐 방지 */
-.lk-chat-entry .lk-message-body {
-  display: block !important;
-  white-space: pre-wrap !important;
-  word-break: break-word !important;
+/* 7. 말풍선 (상대방 = 회색) */
+body .lk-chat .lk-chat-entry .lk-message-body {
   padding: 10px 14px !important;
   border-radius: 14px !important;
   font-size: 14px !important;
@@ -100,8 +111,8 @@ body [class*="lk-chat-header"] {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
 }
 
-/* 8. 내 말풍선 (파란색, 오른쪽) */
-.lk-chat-entry[data-lk-message-origin="local"] .lk-message-body {
+/* 8. 내 말풍선 (파란색) */
+body .lk-chat .lk-chat-entry[data-lk-message-origin="local"] .lk-message-body {
   background-color: #2563eb !important;
   color: white !important;
   border-top-left-radius: 14px !important;
@@ -109,14 +120,15 @@ body [class*="lk-chat-header"] {
 }
 
 /* 9. 하단 입력창 고정 */
-.lk-chat-form {
+body .lk-chat .lk-chat-form {
   padding: 16px !important;
   background-color: #0f172a !important;
   border-top: 1px solid rgba(255,255,255,0.1) !important;
   flex-shrink: 0 !important;
 }
 
-.lk-chat-form-input {
+body .lk-chat .lk-chat-form-input,
+body .lk-chat .lk-chat-form .lk-chat-form-input {
   background: rgba(255,255,255,0.05) !important;
   border: 1px solid rgba(255,255,255,0.1) !important;
   color: white !important;
