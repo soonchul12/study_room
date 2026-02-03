@@ -3,21 +3,20 @@
 import { useEffect, useState, use } from 'react';
 import { 
   LiveKitRoom, 
-  GridLayout,
-  ParticipantTile,
+  GridLayout, 
+  ParticipantTile, 
   RoomAudioRenderer, 
-  TrackToggle,
+  TrackToggle, 
   Chat, 
-  DisconnectButton,
-  LayoutContextProvider,
-  useTracks,
+  DisconnectButton, 
+  LayoutContextProvider, 
+  useTracks, 
   useLocalParticipant 
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import '@livekit/components-styles';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-
 import AIStudyTimer from '@/components/AIStudyTimer';
 
 interface PageProps {
@@ -68,64 +67,19 @@ export default function StudyRoomPage({ params }: PageProps) {
 function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   
-  // ⭐ 내 상태(마이크, 카메라 등) 가져오기
-  const { 
-    localParticipant, 
-    isMicrophoneEnabled, 
-    isCameraEnabled, 
-    isScreenShareEnabled 
-  } = useLocalParticipant();
+  // 상태 확인용 훅
+  const { isMicrophoneEnabled, isCameraEnabled, isScreenShareEnabled } = useLocalParticipant();
 
-  const [videoTrack, setVideoTrack] = useState<MediaStreamTrack | null>(null);
+  // ⭐ [핵심 수정] 카메라 트랙을 더 확실하게 가져오는 방법 (useTracks 사용)
+  const videoTracks = useTracks([Track.Source.Camera], { onlySubscribed: false });
+  // 내 카메라 트랙 찾기
+  const localVideoTrack = videoTracks.find(t => t.participant.isLocal)?.publication?.videoTrack?.mediaStreamTrack || null;
 
-  // AI 타이머용 트랙 감지 로직
-  useEffect(() => {
-    if (localParticipant) {
-      const updateTrack = () => {
-        const trackPub = localParticipant.videoTrackPublications.values().next().value;
-        if (trackPub?.videoTrack && !trackPub.isMuted) {
-           setVideoTrack(trackPub.videoTrack.mediaStreamTrack);
-        } else {
-           setVideoTrack(null);
-        }
-      };
-      
-      // 초기 상태 확인
-      updateTrack();
-
-      // 상태 변경 감지
-      const events = ['trackPublished', 'trackUnpublished', 'trackMuted', 'trackUnmuted'];
-      events.forEach(evt => localParticipant.on(evt, updateTrack));
-
-      return () => {
-        events.forEach(evt => localParticipant.off(evt, updateTrack));
-      };
-    }
-  }, [localParticipant]);
-
-  // ⭐ 버튼 상태 정의 (켜짐/꺼짐에 따른 아이콘과 스타일)
+  // 버튼 설정
   const controls = [
-    { 
-      source: Track.Source.Microphone, 
-      enabled: isMicrophoneEnabled, 
-      iconOn: <MicrophoneIcon />, 
-      iconOff: <MicrophoneOffIcon />,
-      label: '마이크'
-    },
-    { 
-      source: Track.Source.Camera, 
-      enabled: isCameraEnabled, 
-      iconOn: <CameraIcon />, 
-      iconOff: <CameraOffIcon />,
-      label: '카메라'
-    },
-    { 
-      source: Track.Source.ScreenShare, 
-      enabled: isScreenShareEnabled, 
-      iconOn: <ScreenShareIcon />, 
-      iconOff: <ScreenShareIcon />, // 스크린쉐어는 아이콘 동일
-      label: '화면공유'
-    }
+    { source: Track.Source.Microphone, enabled: isMicrophoneEnabled, iconOn: <MicrophoneIcon />, iconOff: <MicrophoneOffIcon /> },
+    { source: Track.Source.Camera, enabled: isCameraEnabled, iconOn: <CameraIcon />, iconOff: <CameraOffIcon /> },
+    { source: Track.Source.ScreenShare, enabled: isScreenShareEnabled, iconOn: <ScreenShareIcon />, iconOff: <ScreenShareIcon /> }
   ];
 
   return (
@@ -142,7 +96,7 @@ function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
         <button 
           onClick={() => {
             navigator.clipboard.writeText(window.location.href);
-            alert("링크가 복사되었습니다!");
+            alert("링크 복사 완료!");
           }}
           className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-medium text-slate-400 hover:text-white border border-white/5 flex items-center gap-2"
         >
@@ -155,9 +109,9 @@ function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
       <div className="flex-1 flex overflow-hidden relative">
         <div className="flex-1 flex flex-col relative bg-black/40 transition-all">
             
-            {/* AI 타이머 */}
+            {/* ⭐ AI 타이머 (localVideoTrack을 전달합니다) */}
             <div className="absolute top-6 left-6 z-30 animate-in fade-in zoom-in duration-500">
-              <AIStudyTimer videoTrack={videoTrack} />
+              <AIStudyTimer videoTrack={localVideoTrack} />
             </div>
 
             <VideoGrid />
@@ -166,15 +120,14 @@ function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
             <div className="h-24 flex items-center justify-center pointer-events-none absolute bottom-0 w-full z-20 bg-gradient-to-t from-[#020617] via-[#020617]/80 to-transparent">
               <div className="flex items-center gap-3 bg-[#1e293b]/90 p-3 rounded-full border border-white/10 shadow-2xl backdrop-blur-md pointer-events-auto origin-bottom">
                 
-                {/* ⭐ 상태에 따라 변하는 버튼들 */}
                 {controls.map((item, idx) => (
                   <TrackToggle 
                     key={idx}
                     source={item.source} 
                     className={`!border-none !rounded-full !p-3.5 transition-all active:scale-95 duration-200 ${
                       item.enabled 
-                        ? '!bg-white !text-slate-900 shadow-[0_0_15px_rgba(255,255,255,0.4)]' // 켜짐: 흰색 배경
-                        : '!bg-white/5 !text-slate-400 hover:!bg-white/10 hover:!text-slate-200' // 꺼짐: 투명 배경
+                        ? '!bg-white !text-slate-900 shadow-[0_0_15px_rgba(255,255,255,0.4)]' 
+                        : '!bg-white/5 !text-slate-400 hover:!bg-white/10 hover:!text-slate-200'
                     }`}
                     showIcon={false}
                   >
@@ -184,7 +137,6 @@ function StudyRoomContent({ roomTitle }: { roomTitle: string }) {
 
                 <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
 
-                {/* 채팅 버튼 */}
                 <button 
                   onClick={() => setIsChatOpen(!isChatOpen)}
                   className={`p-3.5 rounded-full transition-all active:scale-95 ${
@@ -246,14 +198,10 @@ function VideoGrid() {
   );
 }
 
-/* 아이콘 모음: ON 상태와 OFF 상태(빗금)를 모두 정의했습니다.
-*/
 const MicrophoneIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>;
 const MicrophoneOffIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>;
-
 const CameraIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>;
 const CameraOffIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><path d="M15.13 15.13A4 4 0 0 1 9.88 9.88"/></svg>;
-
 const ScreenShareIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 3H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/><polyline points="17 8 22 3 17 3"/><line x1="22" y1="3" x2="15" y2="10"/></svg>;
 const ChatIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
 const ExitIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
