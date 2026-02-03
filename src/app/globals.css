@@ -1,7 +1,5 @@
-/* 🚨 1. 이 3줄은 절대 지우면 안 됩니다! (Tailwind 엔진 시동 거는 코드) */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* 🚨 1. Tailwind v4 엔진 시동 (v4는 @import 사용) */
+@import "tailwindcss";
 
 /* 🚨 2. 배경색이 안 나오는 문제 해결 (다크모드 강제 적용) */
 body {
