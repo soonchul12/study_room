@@ -29,20 +29,32 @@ export default function StudyRoomPage({ params }: PageProps) {
   const [roomTitle, setRoomTitle] = useState("공부방");
   const router = useRouter();
 
-  useEffect(() => {
-    const initRoom = async () => {
-      const { data } = await supabase.from('rooms').select('title').eq('id', id).single();
-      if (data) setRoomTitle(data.title);
+  // src/app/room/[id]/page.tsx 내부의 useEffect 부분 수정
 
-      const { data: userData } = await supabase.auth.getUser();
-      const userName = userData.user?.user_metadata.full_name || "Guest";
+useEffect(() => {
+  const initRoom = async () => {
+    // 1. 방 제목 가져오기
+    const { data } = await supabase.from('rooms').select('title').eq('id', id).single();
+    if (data) setRoomTitle(data.title);
 
-      const resp = await fetch(`/api/get-token?room=${id}&username=${userName}`);
-      const tokenData = await resp.json();
-      setToken(tokenData.token);
-    };
-    initRoom();
-  }, [id]);
+    // 2. 내 정보(이름/아이디) 확실하게 가져오기 ⭐
+    const { data: userData } = await supabase.auth.getUser();
+    let userName = "익명";
+
+    if (userData.user) {
+      // 이름이 있으면 이름, 없으면 이메일(@앞부분)을 사용해서 누군지 식별
+      userName = userData.user.user_metadata.full_name 
+        || userData.user.email?.split('@')[0] 
+        || "User-" + Math.floor(Math.random() * 1000);
+    }
+
+    // 3. 토큰 발급 요청 (이름 포함)
+    const resp = await fetch(`/api/get-token?room=${id}&username=${userName}`);
+    const tokenData = await resp.json();
+    setToken(tokenData.token);
+  };
+  initRoom();
+}, [id]);
 
   if (token === "") return (
     <div className="h-screen bg-[#020617] flex items-center justify-center text-white">Loading...</div>

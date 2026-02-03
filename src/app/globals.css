@@ -1,117 +1,101 @@
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 🚨 [핵심] LiveKit 기본 헤더 강제 삭제 (여기서 Messages 글씨와 기본 X버튼을 날립니다) */
+/* 🚨 LiveKit 기본 헤더 숨기기 (지난번 해결했던 부분) */
 body .lk-chat-header,
 body [class*="lk-chat-header"] {
   display: none !important;
-  height: 0 !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  visibility: hidden !important;
-  margin: 0 !important;
-  padding: 0 !important;
 }
 
 /* =========================================
-   채팅창 디자인 (짤림 방지 & 스타일링)
+   💬 채팅창 완벽 커스텀 (카톡/디스코드 스타일)
    ========================================= */
 
-/* 채팅창 전체 컨테이너 */
+/* 1. 채팅창 전체 틀 */
 .lk-chat {
+  background: transparent !important;
+  border: none !important;
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  background: transparent !important;
-  border: none !important;
 }
 
-/* 메시지 목록 영역 (여백 확보) */
+/* 2. 메시지 목록 영역 */
 .lk-chat-messages {
   flex-grow: 1 !important;
-  overflow-y: auto !important;
   padding: 20px 16px !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 12px !important;
+  gap: 16px !important; /* 메시지 사이 간격 넓힘 */
+  overflow-y: auto !important;
 }
 
-/* 개별 메시지 박스 */
+/* 3. 개별 메시지 박스 (공통) */
 .lk-chat-entry {
-  max-width: 90% !important;
   display: flex !important;
   flex-direction: column !important;
+  max-width: 85% !important; /* 말풍선 최대 너비 */
+  position: relative !important;
 }
 
-/* 보낸 사람 이름 (닉네임) */
+/* ⭐ 4. 상대방 채팅 (기본 왼쪽 정렬) */
+.lk-chat-entry {
+  align-items: flex-start !important; /* 내용물 왼쪽 정렬 */
+  align-self: flex-start !important;  /* 박스 자체 왼쪽 정렬 */
+}
+
+/* ⭐ 5. 내 채팅 (오른쪽 정렬 & 파란색) */
+.lk-chat-entry.lk-self {
+  align-items: flex-end !important; /* 내용물 오른쪽 정렬 */
+  align-self: flex-end !important;  /* 박스 자체 오른쪽 정렬 */
+}
+
+/* ⭐ 6. 이름(ID) 표시 (누군지 확실히 보이게) */
 .lk-chat-entry-metadata {
   display: block !important;
   font-size: 11px !important;
-  font-weight: 800 !important;
-  color: #94a3b8 !important; /* slate-400 */
+  font-weight: 700 !important;
+  color: #94a3b8 !important; /* 밝은 회색 */
   margin-bottom: 4px !important;
-  padding-left: 2px !important;
+  padding: 0 4px !important;
 }
 
-/* 말풍선 본문 */
+/* 내 이름은 오른쪽 정렬 */
+.lk-chat-entry.lk-self .lk-chat-entry-metadata {
+  text-align: right !important;
+  color: #60a5fa !important; /* 내 이름은 약간 푸른색으로 강조 */
+}
+
+/* 7. 말풍선 본문 디자인 */
 .lk-chat-entry-message {
-  background-color: rgba(30, 41, 59, 0.8) !important; /* slate-800 */
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #e2e8f0 !important;
   padding: 10px 14px !important;
-  border-radius: 12px !important;
-  border-top-left-radius: 2px !important;
+  border-radius: 14px !important;
   font-size: 14px !important;
   line-height: 1.5 !important;
-  word-break: break-all !important; /* 글자 짤림 방지 */
+  word-break: break-all !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
 }
 
-/* 내 메시지 (파란색 & 오른쪽 정렬) */
-.lk-chat-entry.lk-self {
-  align-self: flex-end !important;
-  align-items: flex-end !important;
+/* 상대방 말풍선 (어두운 회색) */
+.lk-chat-entry-message {
+  background-color: #334155 !important; /* slate-700 */
+  color: #f1f5f9 !important;
+  border-top-left-radius: 2px !important; /* 말꼬리 효과 */
 }
 
+/* 내 말풍선 (파란색) */
 .lk-chat-entry.lk-self .lk-chat-entry-message {
   background-color: #2563eb !important; /* blue-600 */
   color: white !important;
-  border: none !important;
-  border-top-left-radius: 12px !important;
-  border-top-right-radius: 2px !important;
+  border-top-left-radius: 14px !important;
+  border-top-right-radius: 2px !important; /* 말꼬리 효과 */
 }
 
-/* 하단 입력창 고정 */
+/* 8. 하단 입력창 고정 */
 .lk-chat-form {
   padding: 16px !important;
-  background-color: #0f172a !important; /* slate-950 */
+  background-color: #0f172a !important;
   border-top: 1px solid rgba(255,255,255,0.1) !important;
   flex-shrink: 0 !important;
 }
@@ -122,5 +106,4 @@ body [class*="lk-chat-header"] {
   color: white !important;
   border-radius: 8px !important;
   padding: 10px 12px !important;
-  font-size: 14px !important;
 }
